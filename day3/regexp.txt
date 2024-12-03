@@ -1,0 +1,7 @@
+# First part - just isolate the numbers to be multiplied
+grep -o "mul([0-9]*,[0-9]*)" input | grep -o "[0-9]*,[0-9]*" - > cleanedintput
+
+# Second part - separate into do and don't numbers to be multiplied (to enable cross-check)
+grep -o "mul([0-9]*,[0-9]*)" inputdont | grep -o "[0-9]*,[0-9]*" - > dontinput
+grep -o "mul([0-9]*,[0-9]*)" inputdo | grep -o "[0-9]*,[0-9]*" - > dointput
+
