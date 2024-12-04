@@ -49,31 +49,23 @@ def count_xmas_part2(grid):
         # Need room for 3x3 pattern
         if not (0 <= row + 2 < rows and 0 <= col + 2 < cols):
             return False
+        
+        # Center must be 'A'
+        if grid[row+1][col+1] != 'A':
+            return False
             
-        # Check both possible MAS combinations:
-        # M.S    S.M
-        # .A. or .A.
-        # M.S    S.M
-        patterns = [
-            [('M', 'S'), ('A',), ('M', 'S')],  # MAS, MAS
-            [('S', 'M'), ('A',), ('S', 'M')]   # SAM, SAM
+        # Check all valid combinations for the diagonals
+        # Each diagonal can be either MAS or SAM
+        diagonals = [
+            (grid[row][col] + grid[row+2][col+2]),     # top-left to bottom-right
+            (grid[row][col+2] + grid[row+2][col])      # top-right to bottom-left
         ]
         
-        for pattern in patterns:
-            # Check top positions
-            if grid[row][col] not in pattern[0] or grid[row][col+2] not in pattern[0]:
-                continue
-            # Check middle position
-            if grid[row+1][col+1] not in pattern[1]:
-                continue
-            # Check bottom positions
-            if grid[row+2][col] not in pattern[2] or grid[row+2][col+2] not in pattern[2]:
-                continue
-            return True
-            
-        return False
+        valid_ends = {'MS', 'SM'}  # Valid combinations for diagonal ends
+        
+        return all(d[0] + d[1] in valid_ends for d in diagonals)
     
-    # Check every possible top-left position of the X pattern
+    # Check every possible center position of the X pattern
     for i in range(rows-2):
         for j in range(cols-2):
             if check_x_pattern(i, j):
