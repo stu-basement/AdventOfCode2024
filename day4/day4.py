@@ -88,4 +88,5 @@ for startY in range(0, len(wordSquare)):
          if (findWord(startX-2, startY, 1, -1, mas)):
              foundCount += 1
 
-print(f"Total found (part 2): {foundCount}") 
+# We match both directions of patterns, so answer is total found divided by two
+print(f"Total found (part 2): {foundCount // 2}") 
