@@ -26,8 +26,6 @@ struct {
 %token <num1> MUL
 %token DO
 %token DONT
-%token COMMA
-%token RPAREN
 
 %%
 
