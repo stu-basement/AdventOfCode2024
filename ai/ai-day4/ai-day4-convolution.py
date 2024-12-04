@@ -6,73 +6,76 @@ def read_input(filename):
         return [list(line.strip()) for line in f if line.strip().isalpha() and line.strip().isupper()]
 
 def create_pattern_matrices():
-    # Create all possible X pattern matrices
+    # Each pattern is a 3x3 matrix where:
+    # M = 1, A = 2, S = 3, and 0 = don't care
     patterns = []
     
-    # The four possible diagonal combinations for M and S
-    diagonals = [
-        [(1,3), (1,3)],  # M-S/M-S
-        [(1,3), (3,1)],  # M-S/S-M
-        [(3,1), (1,3)],  # S-M/M-S
-        [(3,1), (3,1)]   # S-M/S-M
-    ]
+    # Pattern 1: M.S/.A./M.S
+    p1 = np.array([
+        [1, 0, 3],
+        [0, 2, 0],
+        [1, 0, 3]
+    ])
+    patterns.append(p1)
     
-    for d1, d2 in diagonals:
-        pattern = np.zeros((3, 3), dtype=int)
-        # Set the center A
-        pattern[1, 1] = 2
-        # Set first diagonal (top-left to bottom-right)
-        pattern[0, 0] = d1[0]
-        pattern[2, 2] = d1[1]
-        # Set second diagonal (top-right to bottom-left)
-        pattern[0, 2] = d2[0]
-        pattern[2, 0] = d2[1]
-        patterns.append(pattern)
+    # Pattern 2: S.M/.A./S.M
+    p2 = np.array([
+        [3, 0, 1],
+        [0, 2, 0],
+        [3, 0, 1]
+    ])
+    patterns.append(p2)
+    
+    # Pattern 3: M.S/.A./S.M
+    p3 = np.array([
+        [1, 0, 3],
+        [0, 2, 0],
+        [3, 0, 1]
+    ])
+    patterns.append(p3)
+    
+    # Pattern 4: S.M/.A./M.S
+    p4 = np.array([
+        [3, 0, 1],
+        [0, 2, 0],
+        [1, 0, 3]
+    ])
+    patterns.append(p4)
     
     return patterns
 
-def convert_grid_to_numeric(grid):
-    conversion = {'M': 1, 'A': 2, 'S': 3}
-    return np.array([[conversion.get(c, 0) for c in row] for row in grid])
-
 def find_xmas_patterns(grid):
-    numeric_grid = convert_grid_to_numeric(grid)
-    patterns = create_pattern_matrices()
+    # Convert grid to numeric array
+    numeric_grid = np.zeros_like(grid, dtype=int)
+    numeric_grid[np.array(grid) == 'M'] = 1
+    numeric_grid[np.array(grid) == 'A'] = 2
+    numeric_grid[np.array(grid) == 'S'] = 3
+    
     total_matches = 0
+    patterns = create_pattern_matrices()
     
     for pattern in patterns:
-        # Create binary masks for each value (M=1, A=2, S=3)
-        matches = np.ones(numeric_grid.shape[0] - 2, dtype=int)
-        for i in range(numeric_grid.shape[1] - 2):
-            window = numeric_grid[0:3, i:i+3]  # Get 3x3 window
-            match = True
-            for r in range(3):
-                for c in range(3):
-                    if pattern[r,c] != 0:  # if this position matters
-                        if pattern[r,c] != window[r,c]:
-                            match = False
-                            break
-                if not match:
-                    break
-            if match:
-                total_matches += 1
-            
-        # Slide the window down
-        for j in range(1, numeric_grid.shape[0] - 2):
-            window = numeric_grid[j:j+3, 0:3]  # Get 3x3 window
-            for i in range(numeric_grid.shape[1] - 2):
-                window = numeric_grid[j:j+3, i:i+3]
-                match = True
-                for r in range(3):
-                    for c in range(3):
-                        if pattern[r,c] != 0:  # if this position matters
-                            if pattern[r,c] != window[r,c]:
-                                match = False
-                                break
-                    if not match:
-                        break
-                if match:
-                    total_matches += 1
+        # Create kernel for matching
+        kernel = np.ones((3, 3))
+        
+        # For each position that matters in the pattern
+        match_positions = pattern != 0
+        result = np.ones(numeric_grid.shape[0] - 2, dtype=int)
+        
+        # Check each position that matters
+        for i in range(3):
+            for j in range(3):
+                if match_positions[i, j]:
+                    matches = convolve2d(
+                        (numeric_grid == pattern[i, j]).astype(int),
+                        np.array([[1 if x == i and y == j else 0 
+                                 for x in range(3)] 
+                                for y in range(3)]),
+                        mode='valid'
+                    )
+                    result = result & (matches == 1)
+        
+        total_matches += np.sum(result)
     
     return total_matches
 
