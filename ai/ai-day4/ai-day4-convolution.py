@@ -10,18 +10,13 @@ def create_pattern_matrices():
     # M = 1, A = 2, S = 3, and 0 = don't care
     patterns = []
     
-    # All possible diagonal combinations
+    # All valid diagonal combinations
     diagonals = [
         # First diagonal (tl-br), Second diagonal (tr-bl)
         ('MS', 'MS'),  # M.S/.A./M.S
         ('SM', 'SM'),  # S.M/.A./S.M
         ('MS', 'SM'),  # M.S/.A./S.M
         ('SM', 'MS'),  # S.M/.A./M.S
-        # Add reverse patterns
-        ('SA', 'MS'),  # S.M/.A./M.S (reversed)
-        ('MA', 'SM'),  # M.S/.A./S.M (reversed)
-        ('SA', 'SM'),  # S.M/.A./S.M (reversed)
-        ('MA', 'MS')   # M.S/.A./M.S (reversed)
     ]
     
     for d1, d2 in diagonals:
