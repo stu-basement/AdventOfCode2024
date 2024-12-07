@@ -1,4 +1,5 @@
 import itertools
+import math
 
 results = []
 values = []
@@ -14,7 +15,7 @@ def calc(op, term1, term2):
     elif (op[0] == "*"):
         return term1 * term2
     elif (op[0] == "|"):
-        return (term1 * (10 ** len(str(term2)))) + term2
+        return (term1 * (10 ** math.floor(math.log10(term2)))) + term2
     else:
         return None
 
@@ -28,15 +29,9 @@ for line in f.readlines():
     values.append(terms)
     maxTerms = max(maxTerms, len(terms))
 
-print(f"Longest is {maxTerms} need {maxTerms - 1} operations combos")
-
 for opLength in range(0, maxTerms - 1):
     for operators in operatorCombo("+*|",opLength+1):
         operations.append(list(''.join(operators)))
-
-print("Operations")
-for op in operations:
-    print(op)
 
 def calcEquation(values, combo, expectedResult):
     result= values[0]
@@ -51,7 +46,6 @@ for r in range(0, len(results)):
         if (len(combo) == len(values[r]) - 1):
             validResult = calcEquation(values[r], combo, results[r])
             if (validResult):
-                print(f"SUCCESS {results[r]}: {values[r]} {combo}")
                 success.append(results[r])
                 break
 
