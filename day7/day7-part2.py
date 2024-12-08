@@ -34,22 +34,17 @@ for opLength in range(0, maxTerms - 1):
         operations.append(list(''.join(operators)))
 
 def calcEquation(values, combo, expectedResult):
-    # optimise by excluding operators
+    result= values[0]
     # last operation can only be multiplication if expectedResult divides exactly by last term
-    if (expectedResult % values[len(values)-1] != 0):
-        if (combo[len(values) - 2] == '*'):
-            return False
+    if (expectedResult % values[len(values) - 1] != 0) and (combo[len(combo) - 1] == '*'):
+        return False
 
     # last operation can only be concatenation if last digits of expected result are the same as the final term
     # calculate number of digits in last term
     # take mod of division by 10 ** number of digits
-    numDigits = len(str(values[len(values) - 1]))
-    divisor = 10 ** numDigits
-    if (expectedResult % divisor != values[len(values) - 1]):
-        if (combo[len(values) - 2] =="|"):
-            return False
+    if expectedResult % (10 ** len(str(values[len(values) - 1]))) != values[len(values) - 1] and (combo[len(combo) - 1] == "|"):
+        return False
 
-    result= values[0]
     for v in range(1, len(values)):
         result = calc(combo[v-1], result, values[v])
         # Early exit if we exceed the expected result before using all the terms
@@ -61,6 +56,7 @@ value = 0
 for r in range(0, len(results)):
     validResult = False
     for combo in operations:
+        # only process a combination of operations that matches the number of terms
         if (len(combo) == len(values[r]) - 1):
             validResult = calcEquation(values[r], combo, results[r])
             if (validResult):
