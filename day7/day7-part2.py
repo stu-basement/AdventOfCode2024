@@ -34,6 +34,21 @@ for opLength in range(0, maxTerms - 1):
         operations.append(list(''.join(operators)))
 
 def calcEquation(values, combo, expectedResult):
+    # optimise by excluding operators
+    # last operation can only be multiplication if expectedResult divides exactly by last term
+    if (expectedResult % values[len(values)-1] != 0):
+        if (combo[len(values) - 2] == '*'):
+            return False
+
+    # last operation can only be concatenation if last digits of expected result are the same as the final term
+    # calculate number of digits in last term
+    # take mod of division by 10 ** number of digits
+    numDigits = len(str(values[len(values) - 1]))
+    divisor = 10 ** numDigits
+    if (expectedResult % divisor != values[len(values) - 1]):
+        if (combo[len(values) - 2] =="|"):
+            return False
+
     result= values[0]
     for v in range(1, len(values)):
         result = calc(combo[v-1], result, values[v])
