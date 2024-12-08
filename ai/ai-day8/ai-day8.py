@@ -34,17 +34,18 @@ def find_antinodes_part1(antennas: defaultdict, grid_width: int, grid_height: in
                 dx = p2[0] - p1[0]
                 dy = p2[1] - p1[1]
                 
-                # Find points at double distance on both sides
-                for multiplier in [-2, 2]:
-                    x = p1[0] - multiplier * dx
-                    y = p1[1] - multiplier * dy
-                    if 0 <= x < grid_width and 0 <= y < grid_height:
-                        antinodes.add((x, y))
-                    
-                    x = p2[0] + multiplier * dx
-                    y = p2[1] + multiplier * dy
-                    if 0 <= x < grid_width and 0 <= y < grid_height:
-                        antinodes.add((x, y))
+                # Find the point that divides the line in 1:2 ratio on both sides
+                # First point: p1 is closer (1/3 of the way from p1 to p2)
+                x = p1[0] + 2 * dx
+                y = p1[1] + 2 * dy
+                if 0 <= x < grid_width and 0 <= y < grid_height:
+                    antinodes.add((x, y))
+                
+                # Second point: p2 is closer (1/3 of the way from p2 to p1)
+                x = p2[0] - 2 * dx
+                y = p2[1] - 2 * dy
+                if 0 <= x < grid_width and 0 <= y < grid_height:
+                    antinodes.add((x, y))
     
     return antinodes
 
