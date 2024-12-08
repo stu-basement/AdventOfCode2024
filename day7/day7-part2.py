@@ -37,6 +37,9 @@ def calcEquation(values, combo, expectedResult):
     result= values[0]
     for v in range(1, len(values)):
         result = calc(combo[v-1], result, values[v])
+        # Early exit if we exceed the expected result before using all the terms
+        if (result > expectedResult):
+            return False
     return (result == expectedResult)
 
 value = 0
