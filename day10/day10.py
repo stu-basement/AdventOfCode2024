@@ -12,10 +12,7 @@ with open("input", "r") as f:
     for line in f.read().splitlines():
         areaMap.append(list(line))
 
-for line in areaMap:
-    print(f"{line}")
-
-print(f"Width {len(areaMap)} x height {len(areaMap)}")
+# Calculate the possible moves - each valid move is an edge between grid locations
 for y in range(0, len(areaMap)):
     for x in range (0, len(areaMap[0])):
         for d in directions:
@@ -26,9 +23,7 @@ for y in range(0, len(areaMap)):
                 if int(areaMap[nextY][nextX]) == int(areaMap[y][x]) + 1:
                     edges.add((x, y, nextX, nextY)) 
 
-for e in edges:
-    print(f"Edge: {e[0]}, {e[1]} to {e[2]},{e[3]}")
-
+# Make the set of trailhead locations - each grid cell with 0 is a trailhead
 trailheads = set()
 trails = []
 # Make a set of starting locations (starting at 0)
@@ -37,49 +32,45 @@ for y in range(0, len(areaMap)):
         if (int(areaMap[y][x]) == 0):
             trailheads.add((x, y))
 
-print(f"Trailheads {trailheads}") 
-
+# Calculate the paths from trailheads to tops
 tops = set()
 for t in trailheads:
-    print(f"Walk trailhead starting at {t[0]},{t[1]}")
     startX = t[0]
     startY = t[1]
 
+    # DFS through the edges from each starting point
     s = list()
     v = (startX, startY, False)
     s.append([v, [[startX, startY]]])
     while len(s) > 0:
         (v,path) = s.pop()
         if not v[2]:
-            print(f"Node {v[0]},{v[1]} not visited")
             if (int(areaMap[v[1]][v[0]]) == 9):
-                print(f"Top of trail found at {v[0]},{v[1]} {path}")
-                print(f"Path {path}")
+                # full path from trailhead to top found
                 tops.add((t[0], t[1], v[0],v[1]))
                 trails.append(path)
 
             v = (v[0], v[1], True)
-            print(f"Visit {v[0]},{v[1]}")
             for e in edges:
                 if (e[0] == v[0]) and (e[1] == v[1]):
-                    print(f"Add to stack neighbour {e[2]},{e[3]} and path so far {path}")
                     p = path.copy()
                     p.append([e[2], e[3]])
                     s.append([(e[2], e[3], False), p])
- 
+
+# Part 1 answer is the total number of tops reachable from all trailheads 
 totalScore = 0
 for t in trailheads:
     for tr in tops:
         if (t[0] == tr[0]) and (t[1] == tr[1]):
             totalScore += 1
  
-print(f"Trailhead score {totalScore}")
+print(f"PART1 Trailhead score {totalScore}")
 
-print(f"Number of trails {len(trails)}")
+# Part 2 answer is the total number of paths to all tops from all trailheads
 ratingScore = 0
 for t in trailheads:
     for tr in trails:
         if (t[0] == tr[0][0]) and (t[1] == tr[0][1]):
             ratingScore += 1
 
-print(f"Trailhead rating {ratingScore}")
+print(f"PART2 Trailhead rating {ratingScore}")
