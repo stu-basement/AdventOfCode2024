@@ -1,42 +1,38 @@
 import math
 import functools
 
-f = open('input')
-for line in f.readlines():
-   stones = list(map(int, line.split()))
-
-# Part 1
-for n in range(0,25):
-    i = 0
-    numStones = len(stones)
-    while (i < numStones):
-        if (stones[i] == 0):
-            numDigits = 1
-        else:
-            numDigits = int(math.log10(stones[i]))+1
-
-        if (numDigits % 2) == 0:
-            leftNum = stones[i] // (10 ** (numDigits // 2))
-            rightNum = stones[i] - (leftNum * (10 ** (numDigits // 2)))
-            stones[i] = leftNum
-            stones.insert(i+1, rightNum)
-            numStones += 1
-            i += 1
-        else:
+def expandStones(stones, blinks):
+    for n in range(0,blinks):
+        i = 0
+        numStones = len(stones)
+        while (i < numStones):
             if (stones[i] == 0):
-                stones[i] = 1
+                numDigits = 1
             else:
-                stones[i] *= 2024
-        i += 1
-    print(f"After blink {n+1} {len(stones)} stones")
+                numDigits = int(math.log10(stones[i]))+1
 
-# Part 2
+            if (numDigits % 2) == 0:
+                leftNum = stones[i] // (10 ** (numDigits // 2))
+                rightNum = stones[i] - (leftNum * (10 ** (numDigits // 2)))
+                stones[i] = leftNum
+                stones.insert(i+1, rightNum)
+                numStones += 1
+                i += 1
+            else:
+                if (stones[i] == 0):
+                    stones[i] = 1
+                else:
+                    stones[i] *= 2024
+            i += 1
+    print(f"After blink {blinks} {len(stones)} stones {stones}")
+
 
 # Use a cache to answer the question "how many stones will this become after a number of blinks
-# 0 => 1 => 2024 => 20 24 => 2 0 2 4
-# 2 => 4048 => 40 48 => 4 0 4 8
-# 3 => 6072 => 60 72 => 6 0 7 2
-# 4 => 8096 => 80 96 => 8 0 9 6
+# 0 => 1     => 2024     => 20 24     => 2 0 2 4
+# 1 => 2024  => 20 24    => 2 0 2 4   => 4048 1 4048 8096
+# 2 => 4048  => 40 48    => 4 0 4 8   => 8096 1 8096 16192
+# 3 => 6072  => 60 72    => 6 0 7 2
+# 4 => 8096  => 80 96    => 8 0 9 6
 # 5 => 10120 => 20482880 => 2048 2880 => 20 48 28 80 => 2 0 4 8 2 8 8 0
 # 6 => 12144 => 24579456 => 2457 9456 => 24 57 94 56 => 2 4 5 7 9 4 5 6
 # 8 => 16192 => 32772608 => 3277 2608 => 32 77 26 08 => 3 2 7 7 2 6 0 8
@@ -65,12 +61,23 @@ f = open('input')
 for line in f.readlines():
    stones = line.split()
 
+# Part 1
+print (sum(count(int(n), 0, 25) for n in stones))
+
+# Part 2
 print (sum(count(int(n), 0, 75) for n in stones))
 
+# Test expansion of stones
 stones = [0]
-print (sum(count(int(n), 0, 4) for n in stones))
+print(f"Expansion of {stones}")
+expandStones(stones, 4)
 stones = [1]
-print (sum(count(int(n), 0, 4) for n in stones))
+print(f"Expansion of {stones}")
+expandStones(stones, 4)
+stones = [2]
+print(f"Expansion of {stones}")
+expandStones(stones, 4)
 stones = [5]
-print (sum(count(int(n), 0, 5) for n in stones))
+print(f"Expansion of {stones}")
+expandStones(stones, 5)
 
