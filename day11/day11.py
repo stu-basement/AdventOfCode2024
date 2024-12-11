@@ -1,3 +1,4 @@
+from collections import defaultdict
 import math
 import functools
 
@@ -59,14 +60,14 @@ def count(stone, blink, maxBlink):
 
 f = open('input')
 for line in f.readlines():
-   stones = line.split()
+   stones = list(map(int, line.split()))
 
 # Part 1
-print (sum(count(int(n), 0, 25) for n in stones))
+print (f"Part 1 {sum(count(int(n), 0, 25) for n in stones)}")
 print(count.cache_info())
 
 # Part 2
-print (sum(count(int(n), 0, 75) for n in stones))
+print (f"Part 2 (cached/memoized) {sum(count(int(n), 0, 75) for n in stones)}")
 
 # Test expansion of stones
 stones = [0]
@@ -82,7 +83,40 @@ stones = [5]
 print(f"Expansion of {stones}")
 expandStones(stones, 5)
 
-stones = [0]
-print(f"Expansion of {stones}")
-expandStones(stones, 30)
+print(f"Implement with dictionary")
+f = open('input')
+for line in f.readlines():
+   inputStones = list(map(int, line.split()))
 
+stones = defaultdict(int)
+for s in inputStones:
+    stones[s] = 1
+
+def blink(stones):
+    blinkStones = defaultdict(int)
+
+    # If there's any zeros, tansform them to 1s in this blink and add the 0s count to the 1s count
+    if 0 in stones:
+        blinkStones[1] += stones[0]
+        del stones[0]
+
+    for stone, count in stones.items():
+
+        # Stone has an even number of digits - split it
+        numDigits = int(math.log10(int(stone))) + 1 
+        if numDigits % 2 == 0:
+            leftNum = stone // (10 ** (numDigits // 2))
+            rightNum = stone - (leftNum * (10 ** (numDigits // 2)))
+            blinkStones[leftNum] += count
+            blinkStones[rightNum] += count
+        else:
+            # Multiply stone by 2024 for all other stone numbers
+            blinkStones[(stone * 2024)] += count
+
+    return blinkStones
+
+for x in range(75):
+    stones = blink(stones)
+
+print(f"Part 2 (dictionary) {sum(stones.values())}")
+print(f"Dictionary size {len(stones)}")
