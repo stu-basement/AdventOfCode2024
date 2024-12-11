@@ -63,6 +63,7 @@ for line in f.readlines():
 
 # Part 1
 print (sum(count(int(n), 0, 25) for n in stones))
+print(count.cache_info())
 
 # Part 2
 print (sum(count(int(n), 0, 75) for n in stones))
@@ -80,4 +81,8 @@ expandStones(stones, 4)
 stones = [5]
 print(f"Expansion of {stones}")
 expandStones(stones, 5)
+
+stones = [0]
+print(f"Expansion of {stones}")
+expandStones(stones, 30)
 
