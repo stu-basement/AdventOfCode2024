@@ -67,7 +67,6 @@ for t in trailheads:
                     p.append([e[2], e[3]])
                     s.append([(e[2], e[3], False), p])
  
-print(f"Trails found: {len(trails)}")
 totalScore = 0
 for t in trailheads:
     for tr in tops:
@@ -75,3 +74,12 @@ for t in trailheads:
             totalScore += 1
  
 print(f"Trailhead score {totalScore}")
+
+print(f"Number of trails {len(trails)}")
+ratingScore = 0
+for t in trailheads:
+    for tr in trails:
+        if (t[0] == tr[0][0]) and (t[1] == tr[0][1]):
+            ratingScore += 1
+
+print(f"Trailhead rating {ratingScore}")
