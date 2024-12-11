@@ -13,8 +13,14 @@ with open("input", "r") as f:
         areaMap.append(list(line))
 
 # Calculate the possible moves - each valid move is an edge between grid locations
+# Calculate the trailhead start locations
+trailheads = set()
 for y in range(0, len(areaMap)):
     for x in range (0, len(areaMap[0])):
+        # trailheads start at '0'
+        if (int(areaMap[y][x]) == 0):
+            trailheads.add((x, y))
+
         for d in directions:
             nextX = x + d[0]
             nextY = y + d[1]
@@ -23,25 +29,15 @@ for y in range(0, len(areaMap)):
                 if int(areaMap[nextY][nextX]) == int(areaMap[y][x]) + 1:
                     edges.add((x, y, nextX, nextY)) 
 
-# Make the set of trailhead locations - each grid cell with 0 is a trailhead
-trailheads = set()
-trails = []
-# Make a set of starting locations (starting at 0)
-for y in range(0, len(areaMap)):
-    for x in range(0,len(areaMap[0])):
-        if (int(areaMap[y][x]) == 0):
-            trailheads.add((x, y))
-
 # Calculate the paths from trailheads to tops
+trails = []
 tops = set()
 for t in trailheads:
-    startX = t[0]
-    startY = t[1]
 
     # DFS through the edges from each starting point
     s = list()
-    v = (startX, startY, False)
-    s.append([v, [[startX, startY]]])
+    v = (t[0], t[1], False)
+    s.append([v, [[t[0], t[1]]]])
     while len(s) > 0:
         (v,path) = s.pop()
         if not v[2]:
@@ -53,9 +49,7 @@ for t in trailheads:
             v = (v[0], v[1], True)
             for e in edges:
                 if (e[0] == v[0]) and (e[1] == v[1]):
-                    p = path.copy()
-                    p.append([e[2], e[3]])
-                    s.append([(e[2], e[3], False), p])
+                    s.append([(e[2], e[3], False), path + [e[2], e[3]]])
 
 # Part 1 answer is the total number of tops reachable from all trailheads 
 totalScore = 0
