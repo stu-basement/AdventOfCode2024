@@ -35,6 +35,21 @@ def distanceFromCentre():
         totalDistance += abs(p[0] - (MAP_WIDTH //2)) + abs(p[1] - (MAP_HEIGHT // 2))
     return totalDistance
 
+def placeRobot(x, y):
+    n = robotMap[y][x]
+    if (n == '.'):
+        robotMap[y][x] = str(1)
+    else:
+        robotMap[y][x] = str(int(n)+1)
+
+def moveRobot(x, y, newX, newY):
+    # Move robot from old location
+    n = robotMap[y][x]
+    robotMap[y][x] = str(int(n)-1) if (int(n)-1 > 0) else '.'
+
+    # Update new location after moving
+    placeRobot(newX, newY)
+
 def updatePositionsAtTime(t):
     for p in range(0, len(currentPositions)):
         x = currentPositions[p][0]
@@ -42,8 +57,13 @@ def updatePositionsAtTime(t):
         dx = velocities[p][0]
         dy = velocities[p][1]
 
-        currentPositions[p][0] = (x + ((t * dx) % MAP_WIDTH)) % MAP_WIDTH
-        currentPositions[p][1] = (y + ((t * dy) % MAP_HEIGHT)) % MAP_HEIGHT
+        if (t > 0):
+            currentPositions[p][0] = (x + ((t * dx) % MAP_WIDTH)) % MAP_WIDTH
+            currentPositions[p][1] = (y + ((t * dy) % MAP_HEIGHT)) % MAP_HEIGHT
+
+            moveRobot(x, y, currentPositions[p][0], currentPositions[p][1])
+        else:
+            placeRobot(x, y)
 
 def findXmasTreeWithHeuristic():
     # my heuristic for "most organised" is:
@@ -71,13 +91,6 @@ def findXmasTreeWithHeuristic():
 
     return distanceTime+1
 
-def updateMap():
-    # Update the map from current positions
-    for c in range (0, len(currentPositions)):
-        p = currentPositions[c]
-        n = robotMap[p[1]][p[0]]
-    
-        robotMap[p[1]][p[0]] = str(1 if n =='.' else int(n)+1)
 
 # Create an empty map
 # ONLY use this for visualisation, not processing
@@ -96,9 +109,10 @@ with open("input", "r") as f:
         currentPositions.append([int(pos[0]), int(pos[1])])
         velocities.append([int(velocity[0]), int(velocity[1])])
 
+updatePositionsAtTime(0)
+
 # Got direct to time step 100
 updatePositionsAtTime(100)
-updateMap()
 
 w = MAP_WIDTH // 2
 h = MAP_HEIGHT // 2
@@ -115,13 +129,12 @@ robotMap = []
 for i in range(MAP_HEIGHT):
     robotMap.append(list(''.ljust(MAP_WIDTH, '.')))
 currentPositions = startPoints.copy()
+updatePositionsAtTime(0)
 
 distanceTime = findXmasTreeWithHeuristic()
 print(f"PART2 Xmas Tree time at {distanceTime}")
-
 updatePositionsAtTime(distanceTime)
-updateMap()
-
 for r in robotMap:
    print(''.join(r))
+
 
