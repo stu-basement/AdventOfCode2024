@@ -1,32 +1,10 @@
-f = open('cleanedinput')
-total = 0
-for line in f.readlines():
-   a, b = map(int, line.split(","))
-   if (a > 999 or b > 999):
-      print("Out of range")
-      break
-   total += (a*b)
+""" AdventOfCode Day 3 """
+from re import findall
 
-print(f"Total (part 1): {total}")
+totalPart1 = 0
+with open("input", "r", encoding="utf-8") as f:
+   for line in f.readlines():
+       for a, b in findall(r"mul\((\d+),(\d+)\)", line):
+           totalPart1 += int(a) * int(b)
 
-f = open('doinput')
-totalDo = 0
-for line in f.readlines():
-   a, b = map(int, line.split(","))
-   if (a > 999 or b > 999):
-      print("Out of range")
-      break
-   totalDo += (a*b)
-
-f = open('dontinput')
-totalDont = 0
-for line in f.readlines():
-   a, b = map(int, line.split(","))
-   if (a > 999 or b > 999):
-      print("Out of range")
-      break
-   totalDont += (a*b)
-
-print(f"Total (part 2): {totalDo} excluded {totalDont}")
-if (total == totalDo + totalDont):
-   print("Correct: Do + Don't = original total")
+print(f"PART1 total: {totalPart1}")
