@@ -10,12 +10,14 @@ def safeReport(levels):
     return safe
 
 f = open('input')
-count = 0
+totalSafe = 0
+totalSafeAfterCleaning = 0
 for line in f.readlines():
     levels = list(map(int, line.split()))
 
+
     if (safeReport(levels)):
-        count += 1
+        totalSafe += 1
     else:
         print(f"Unsafe ({len(levels)} levels")
         for t in range(0, len(levels)):
@@ -24,7 +26,11 @@ for line in f.readlines():
             del tempLevels[t]
             if (safeReport(tempLevels)):
                print(f"Report now safe")
-               count += 1
+               totalSafeAfterCleaning += 1
                break
 
-print(f"Total safe: {count}")
+# Part 1
+
+# Part 2
+print(f"Total safe: {totalSafe}")
+print(f"Total safe: {totalSafe + totalSafeAfterCleaning}")
