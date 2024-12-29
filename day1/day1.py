@@ -12,8 +12,7 @@ with open("input", "r") as f:
 # Part 1
 listA.sort()
 listB.sort()
-oneList = zip(listA, listB)
-totalDistance = sum([abs(x[1] - x[0]) for x in oneList])
+totalDistance = sum([abs(x[1] - x[0]) for x in zip(listA, listB)])
 
 print(f"Total distance {totalDistance}")
 
