@@ -16,14 +16,12 @@ with open("input", "r", encoding="utf-8") as f:
         if safe_report(list(level1 - level0 for level1, level0 in zip(levels, levels[1:]))):
             total_safe += 1
         else:
-            for t in range(0, len(levels)):
-                tempLevels = levels.copy()
-                del tempLevels[t]
-                if safe_report(list(nextLevel - prevLevel \
-                        for prevLevel, nextLevel in zip(tempLevels, tempLevels[1:]))):
+            for t in range(1, len(levels)+1):
+                oneRemoved = levels[0:t-1]+levels[t:]
+                if safe_report(list(level0 - level1 \
+                        for level0, level1 in zip(oneRemoved, oneRemoved[1:]))):
                     total_cleaned += 1
                     break
-
 # Part 1
 print(f"Total safe: {total_safe}")
 
