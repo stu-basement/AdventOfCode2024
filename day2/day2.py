@@ -1,36 +1,31 @@
-def safeReport(levels):
-    prevLevel = levels[0]
-    prevDelta = levels[1] - levels[0]
-    safe = True
-    for l in range(1, len(levels)):
-       delta = levels[l] - prevLevel
-       safe = safe and (delta != 0) and (abs(delta) <= 3) and (((prevDelta < 0) and (delta < 0)) or ((prevDelta > 0) and (delta > 0)))
-       prevDelta = delta
-       prevLevel = levels[l]
-    return safe
+""" AdventOfCode Day 2 """
 
-f = open('input')
-totalSafe = 0
-totalSafeAfterCleaning = 0
-for line in f.readlines():
-    levels = list(map(int, line.split()))
+# A safe report has successive values all increasing or decreasing
+# and the difference between successive values no greater than 3
+def safe_report(deltas):
+    """ Check that a report is safe """
+    return all(list(0 < abs(delta) <= 3 for delta in deltas)) and \
+            (all(list(delta < 0 for delta in deltas)) or all(list(delta > 0 for delta in deltas)))
 
+with open("input", "r", encoding="utf-8") as f:
+    total_safe = 0
+    total_cleaned= 0
+    for line in f.readlines():
+        levels = list(map(int, line.split()))
 
-    if (safeReport(levels)):
-        totalSafe += 1
-    else:
-        print(f"Unsafe ({len(levels)} levels")
-        for t in range(0, len(levels)):
-            tempLevels = levels.copy()
-            print(f"Remove level {t} of {len(tempLevels)} originally {len(levels)}")
-            del tempLevels[t]
-            if (safeReport(tempLevels)):
-               print(f"Report now safe")
-               totalSafeAfterCleaning += 1
-               break
+        if safe_report(list(level1 - level0 for level1, level0 in zip(levels, levels[1:]))):
+            total_safe += 1
+        else:
+            for t in range(0, len(levels)):
+                tempLevels = levels.copy()
+                del tempLevels[t]
+                if safe_report(list(nextLevel - prevLevel \
+                        for prevLevel, nextLevel in zip(tempLevels, tempLevels[1:]))):
+                    total_cleaned += 1
+                    break
 
 # Part 1
+print(f"Total safe: {total_safe}")
 
 # Part 2
-print(f"Total safe: {totalSafe}")
-print(f"Total safe: {totalSafe + totalSafeAfterCleaning}")
+print(f"Total safe: {total_safe + total_cleaned}")
