@@ -4,8 +4,8 @@
 # and the difference between successive values no greater than 3
 def safe_report(deltas):
     """ Check that a report is safe """
-    return all(list(0 < abs(delta) <= 3 for delta in deltas)) and \
-            (all(list(delta < 0 for delta in deltas)) or all(list(delta > 0 for delta in deltas)))
+    return all(0 < abs(delta) <= 3 for delta in deltas) and \
+            (all(delta < 0 for delta in deltas) or all(delta > 0 for delta in deltas))
 
 with open("input", "r", encoding="utf-8") as f:
     total_safe = 0
