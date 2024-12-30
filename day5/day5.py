@@ -1,136 +1,39 @@
-rules = []
+""" AdventOfCode Day 5 """
+import functools
+
+rules = set()
 updates = []
-section = 1
-with open("input", "r") as f:
-    for line in f.readlines():
-        if section == 1:
-            if len(line) == 1:
-                section = 2
-            else:
-                rules.append(list(map(int, line.split("|"))))
-        elif section == 2:
-            updates.append(list(map(int, line.split(","))))
+incorrect_updates = []
+with open("input", "r", encoding="utf-8") as f:
+    line = f.readline().replace('\n', '')
+    while len(line) > 1:
+        rules.add(tuple(map(int, line.split("|"))))
+        line = f.readline().replace('\n', '')
 
-def existsInList(x, list):
-   for l in list:
-      if (l == x):
-         return True;
-   return False;
+    line = f.readline().replace('\n', '')
+    while len(line) > 1:
+        updates.append(list(map(int, line.split(","))))
+        line = f.readline().replace('\n', '')
 
-def existsBeforeInList(x, list, index):
-    if (index > len(list)):
-       index = len(list)
-    for targetSearchIndex in range(0, index):
-        if (list[targetSearchIndex] == x):
-            return True
-    return False
-
-def existsAfterInList(x, list, index):
-    if (index < 0):
-       index = 0;
-    for searchIndex in range (index, len(list)):
-        if (list[searchIndex] == x):
-           return True
-    return False
-
-def middleNumber(list):
-    return list[len(list) // 2]
-
-def swap(a, b, list):
-   t = list.index(a)
-   ta = list[list.index(a)]
-   u = list.index(b)
-   list[t] = list[list.index(b)]
-   list[u] = ta
-
-def correctlyOrderedList(list):
-    for pageIndex in range(0, len(list)):
-        neededPage = list[pageIndex]
-        for ruleIndex in range(0, len(rules)):
-            if rules[ruleIndex][0] == neededPage:
-                targetPage = rules[ruleIndex][1]
-                if not existsInList(targetPage, list):
-                   continue
-
-                if existsBeforeInList(targetPage, list, pageIndex):
-                    return False
-
-                if existsAfterInList(targetPage, list, pageIndex+1):
-                    for targetRuleIndex in range(0, len(rules)):
-                        if (rules[targetRuleIndex][0] == targetPage):
-                            ruleTargetPage = rules[targetRuleIndex][1]
-                            if (existsBeforeInList(ruleTargetPage, list, pageIndex)):
-                                return False
-    return True 
-
-total = 0
+total_middle_number = 0
 for u in updates:
-    incorrect = not correctlyOrderedList(u)
+    if all(list( (u0, u1) in rules for u0, u1 in zip(u, u[1:]))):
+        total_middle_number += u[len(u) // 2]
+    else:
+        incorrect_updates.append(u)
 
-    for pageIndex in range(0, len(u)):
-        neededPage = u[pageIndex]
-        for ruleIndex in range(0, len(rules)):
-            if rules[ruleIndex][0] == neededPage:
-                targetPage = rules[ruleIndex][1]
+print(f"PART1 total of middle numbers {total_middle_number}")
 
-                # If the target of the rule isn't in the list, we don't care
-                if not existsInList(targetPage, u):
-                   continue
+def compare_updates(a, b):
+    """ Compare two updates using the ruleset """
+    # return -1 if there is a rule that says a should be before b or
+    # return 1 if there is a rule that says a should be after b otherwise
+    # return 0 as pages are already correctly ordered
+    return -1 if (a, b) in rules else 1 if (b, a) in rules else 0
 
-                # if the target of the rule is before the source of the rule, it's incorrect
-                if existsBeforeInList(targetPage, u, pageIndex):
-                   incorrect = True
+total_middle_number = 0
+for u in incorrect_updates:
+    corrected = sorted(u, key=functools.cmp_to_key(compare_updates))
+    total_middle_number += corrected[len(corrected) // 2]
 
-                # if the target of the rule is after the source, we need to check its rules
-                if existsAfterInList(targetPage, u, pageIndex+1):
-                   for targetRuleIndex in range(0, len(rules)):
-                       if (rules[targetRuleIndex][0] == targetPage):
-                           ruleTargetPage = rules[targetRuleIndex][1]
-                           # If the target of the rule is before the source, its incorrect
-                           if (existsBeforeInList(ruleTargetPage, u, pageIndex)):
-                               incorrect = True 
-
-    # only count the middle number if the list is correctly ordered
-    if (not incorrect):
-        total += middleNumber(u)
-
-print(f"Part 1 Total {total}")
-
-
-# Part 2
-total = 0
-for u in updates:
-    # Check the trivial case where the list is already correctly ordered
-    incorrect = not correctlyOrderedList(u)
-    if not incorrect:
-       continue
-
-    # Keep going until it is correctly ordered (assumes no conflict in the ruleset)
-    while (incorrect):
-        for pageIndex in range(0, len(u)):
-            neededPage = u[pageIndex]
-            for ruleIndex in range(0, len(rules)):
-                if rules[ruleIndex][0] == neededPage:
-                    targetPage = rules[ruleIndex][1]
-
-                    # if the target of the rule isn't in the list, we don't care
-                    if not existsInList(targetPage, u):
-                       continue
-
-                    # If the rule says its incorrect order, swap target and source of the rule
-                    if existsBeforeInList(targetPage, u, pageIndex):
-                        swap(targetPage, neededPage, u)
-
-                    if existsAfterInList(targetPage, u, pageIndex+1):
-                        for targetRuleIndex in range(0, len(rules)):
-                            if (rules[targetRuleIndex][0] == targetPage):
-                                ruleTargetPage = rules[targetRuleIndex][1]
-
-                                # If the rule says its incorrect order, swap target and source of the rule
-                                if (existsBeforeInList(ruleTargetPage, u, pageIndex)):
-                                    swap(ruleTargetPage, targetPage, u)
-        incorrect = not correctlyOrderedList(u)
-
-    total += middleNumber(u)
-
-print(f"Part 2 Total {total}")
+print(f"PART2 total of middle numbers {total_middle_number}")
