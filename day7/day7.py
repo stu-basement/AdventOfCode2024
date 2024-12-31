@@ -1,4 +1,6 @@
+""" AdventOfCode Day 7 """
 import itertools
+import math
 
 results = []
 values = []
@@ -6,56 +8,54 @@ operations = []
 success = []
 
 def operatorCombo(op, n):
-   yield from itertools.product(*([op] * n))
+    """ Return the combinations of all operands for the number of terms """
+    yield from itertools.product(*([op] * n))
 
 def calc(op, term1, term2):
-    if (op[0] == "+"):
-      return term1 + term2
-    elif (op[0] == "*"):
+    """ Perform the calculation term1 op term2 """
+    if op == "+":
+        return term1 + term2
+
+    if op == "*":
         return term1 * term2
-    else:
-        return None
 
-f = open('input')
-count = 0
-maxTerms = 0
-for line in f.readlines():
-    x = line.partition(":")
-    results.append(int(x[0]))
-    terms = list(map(int, x[2].split()))
-    values.append(terms)
-    maxTerms = max(maxTerms, len(terms))
+    if op == '|':
+        return (term1 * (10 ** (math.floor(math.log10(term2)) + 1))) + term2
 
-print(f"Longest is {maxTerms} need {maxTerms - 1} operations combos")
+    return None
 
-for opLength in range(0, maxTerms - 1):
-    for operators in operatorCombo("+*",opLength+1):
-        operations.append(list(''.join(operators)))
+equations = []
+with open('input', 'r', encoding='utf-8') as f:
+    for line in f.readlines():
+        x = line.replace('\n', '').split(':')
+        equations.append( (int(x[0]), list(map(int, x[1].split()))) )
 
-print("Operations")
-for op in operations:
-    print(op)
+calibration_result = 0
+for e in equations:
+    for combo in operatorCombo('+*', len(e[1])):
+        result = e[1][0]
+        for t in enumerate(e[1][1:]):
+            result = calc(combo[t[0]-1], result, t[1])
 
-def calcEquation(values, combo, expectedResult):
-    result= values[0]
-    for v in range(1, len(values)):
-        result = calc(combo[v-1], result, values[v])
-    return (result == expectedResult)
+        if result == e[0]:
+            calibration_result += e[0]
+            break
+print(f"PART1 total calibration result {calibration_result}")
 
-value = 0
-for r in range(0, len(results)):
-    validResult = False
-    for combo in operations:
-        if (len(combo) == len(values[r]) - 1):
-            validResult = calcEquation(values[r], combo, results[r])
-            if (validResult):
-                print(f"SUCCESS {results[r]}: {values[r]} {combo}")
-                success.append(results[r])
+calibration_result = 0
+for e in equations:
+    for combo in operatorCombo('+*|', len(e[1])):
+        result = e[1][0]
+
+        for t in enumerate(e[1][1:]):
+            result = calc(combo[t[0]-1], result, t[1])
+
+            # Early exit if we exceed the expected result before using all the terms
+            if result > e[0]:
                 break
 
-total = 0
-print(f"SUCCESS: {success}")
-print(f"Valid results {len(success)}")
-for s in success:
-    total += s
-print(f"PART1 total calibration result {total}")
+        if result == e[0]:
+            calibration_result += e[0]
+            break
+
+print(f"PART2 total calibration result {calibration_result}")
