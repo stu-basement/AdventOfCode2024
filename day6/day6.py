@@ -7,11 +7,11 @@ guard = (0, 0, 0, -1)
 with open("input", "r", encoding="utf-8") as f:
     for line in f.readlines():
         map_width = len(line) - 1
-        for l in enumerate(line.replace('\n', '')):
-            if l[1] == '#':
-                obstacles.add( (l[0], map_height) )
-            elif l[1] == '^':
-                guard = (l[0], map_height, 0, -1)
+        for n, square in enumerate(line.replace('\n', '')):
+            if square == '#':
+                obstacles.add( (n, map_height) )
+            elif square == '^':
+                guard = (n, map_height, 0, -1)
         map_height += 1
 
 visited = set()
@@ -49,5 +49,6 @@ for v in visited:
             loopCount += 1
             break
     obstacles.remove( (v[0], v[1]) )
+    guard = (v[0], v[1], guard[2], guard[3])
 
 print(f"PART2 number of loops detected {loopCount}")
