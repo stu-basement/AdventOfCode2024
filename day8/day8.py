@@ -1,100 +1,49 @@
-antinodeLocations = set()
-areaMap = []
+""" AdventOfCode Day 8 """
+from collections import defaultdict
+import itertools
+
+antinode_locations = set()
+
+# Antennas - key: antenna frequency, values:  [(X, Y)]
+antennas = defaultdict()
 
 # PART 1
-with open("input", "r") as f:
-    for line in f.readlines():
-        areaMap.append(line)
-originalMap = areaMap.copy()
-print(originalMap)
-print(f"Width {len(areaMap[0]) - 1} Height {len(areaMap)}")
+map_width = 0
+map_height = 0
+with open("input", "r", encoding="utf-8") as f:
+    line = f.readline().replace('\n', '')
+    map_width = len(line)
+    while line:
+        for n, square in enumerate(line):
+            if square != '.':
+                if square in antennas:
+                    antennas[square].append( (n, map_height) )
+                else:
+                    antennas[square] = [ (n, map_height) ]
+        map_height += 1
+        line = f.readline().replace('\n', '')
 
-def onMap(x, y):
-    return 0 <= x < len(areaMap[0])-1 and 0 <= y < len(areaMap)
+for _, locations in antennas.items():
+    pairs = list(itertools.combinations(locations, 2))
+    for x,y in [(2*a[0]-b[0], 2*a[1]-b[1]) for a,b in pairs]:
+        if 0 <= x < map_width and 0 <= y < map_height:
+            antinode_locations.add( (x, y) )
+    for x,y in [(2*b[0]-a[0], 2*b[1]-a[1]) for a,b in pairs]:
+        if 0 <= x < map_width and 0 <= y < map_height:
+            antinode_locations.add( (x, y) )
 
-def addLocation(x,y,x1,y1,antennaType):
-    dx = (x1 - x)
-    dy = (y1 - y)
+print(f"PART1: Number of antinodes {len(antinode_locations)}")
 
-    if onMap(x-dx,y-dy):
-        print(f"Add antinode at {x-dx},{y-dy} {dx}-{dy}")
-        antinodeLocations.add((x-dx, y-dy))
-    if onMap(x1+dx,y1+dy):
-        print(f"Add antinode at {x1+dx},{y1+dy} {dx}-{dy}")
-        antinodeLocations.add((x1+dx,y1+dy))
+antinode_locations = set()
+for _, locations in antennas.items():
+    pairs = list(itertools.combinations(locations, 2))
+    for x, y, dx, dy in [( a[0], a[1], (b[0] - a[0]), (b[1] - a[1]) ) for a, b in pairs]:
+        while 0 <= x < map_width and 0 <= y < map_height:
+            antinode_locations.add( (x, y) )
+            x, y = x+dx, y+dy
 
-for y in range(0, len(areaMap)):
-   for x in range(0, len(areaMap[0])-1):
-       if (originalMap[y][x] != '.'):
-           antennaType = originalMap[y][x]
-           print(f"Antenna {antennaType} found at {x},{y}")
-           for y1 in range(y, len(areaMap)):
-               if (y == y1):
-                   startX = x+1
-               else:
-                   startX = 0
-               for x1 in range(startX, len(areaMap[0])-1):
-                   if originalMap[y1][x1] == antennaType:
-                       # this is an edge
-                       print(f"Matching antenna found at {x1},{y1}")
-                       addLocation(x,y,x1,y1,antennaType)
-
-locationCount = 0
-for l in antinodeLocations:
-    ly = l[1]
-    lx = l[0]
-    areaMap[ly] = areaMap[ly][:lx] + "#" + areaMap[ly][lx+1:]
-    locationCount += 1
-
-print(antinodeLocations)
-
-for row in areaMap:
-    print(row)
-
-print(f"Locations {locationCount}")
-
-print("PART2")
-areaMap = originalMap.copy()
-antennaLocations = set()
-for y in range(0, len(areaMap)):
-    for x in range(0, len(areaMap[0])-1):
-        if areaMap[y][x] != '.':
-            antennaLocations.add((x,y,areaMap[y][x]))
-print(f"Antenna locations: {antennaLocations}")
-
-edges = set()
-for id, antenna in enumerate(antennaLocations):
-    print(f"Antenna {antenna[2]} at {antenna[0]},{antenna[1]}") 
-    for id1, antenna1 in enumerate(antennaLocations):
-        if (antenna1[2] == antenna[2]):
-            dx = antenna1[0] - antenna[0]
-            dy = antenna1[1] - antenna[1]
-            if not (dx == 0 and dy == 0):
-                edges.add((antenna[0], antenna[1], antenna[2], dx, dy))
-
-print(f"Edges: {edges}")
-for e in edges:
-    x = e[0]
-    y = e[1]
-    dx = e[3]
-    dy = e[4]
-
-    print(f"Process edge {e}")
-    while onMap(x, y):
-        print(f"Antinode at {x},{y}")
-        antinodeLocations.add((x,y))
-        x += dx
-        y += dy
-
-
-locationCount = 0
-for l in antinodeLocations:
-    ly = l[1]
-    lx = l[0]
-    areaMap[ly] = areaMap[ly][:lx] + "#" + areaMap[ly][lx+1:]
-    locationCount += 1
-
-for row in areaMap:
-    print(row)
-
-print(f"Locations {locationCount}")
+    for x, y, dx, dy in [( b[0], b[1], (b[0] - a[0]), (b[1] - a[1]) ) for a, b in pairs]:
+        while 0 <= x < map_width and 0 <= y < map_height:
+            antinode_locations.add( (x, y) )
+            x, y = x-dx, y-dy
+print(f"PART2: Number of antinodes {len(antinode_locations)}")
