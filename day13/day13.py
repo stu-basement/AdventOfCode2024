@@ -1,16 +1,17 @@
+""" AdventOfCode Day 13 """
 # solve with simultaneous equations
-def solve(prizeX, prizeY, aDX, aDY, bDX, bDY):
+def solve(pX, pY, dxA, dyA, dxB, dyB):
+    """ Solve the for nA, nB using simultaneous equations """
+    a = ((pX * dyB) - (pY * dxB)) / ((dyB * dxA) - (dxB * dyA))
+    b = (pY - (a * dyA)) / dyB 
 
-    nA = ((prizeX * bDY) - (prizeY * bDX)) / ((bDY * aDX) - (bDX * aDY))
-    nB = (prizeY - (nA * aDY)) / bDY
-
-    return int(nA), int(nB)
+    return int(a), int(b)
 
 n = 0
 machines = []
-with open("input", "r") as f:
+with open("input", "r", encoding="utf-8") as f:
     lines = f.readlines()
-    while (n < len(lines)):
+    while n < len(lines):
         buttonA = lines[n].strip()
         buttonB = lines[n+1].strip()
         prize = lines[n+2].strip()
@@ -20,34 +21,17 @@ with open("input", "r") as f:
         aDX = int(aInfo[0])
         aDY = int(aInfo[1][3:])
 
-        aInfo = buttonB[12:].split(',')
-        bDX = int(aInfo[0])
-        bDY = int(aInfo[1][3:])
-        bInfo = buttonB[12:]
+        bInfo = buttonB[12:].split(',')
+        bDX = int(bInfo[0])
+        bDY = int(bInfo[1][3:])
         prizeInfo = prize[7:].split(',')
         prizeX = int(prizeInfo[0][2:])
         prizeY = int(prizeInfo[1][3:])
 
-        machines.append((aDX, aDY, bDX, bDY, prizeX, prizeY))
+        machines.append( (aDX, aDY, bDX, bDY, prizeX, prizeY) )
 
 totalCost = 0
-print(f"{len(machines)} machines")
-for m in machines:
-    aDX = m[0]
-    aDY = m[1]
-    bDX = m[2]
-    bDY = m[3]
-    prizeX = m[4]
-    prizeY = m[5]
-
-totalCost = 0
-for m in machines:
-    aDX = m[0]
-    aDY = m[1]
-    bDX = m[2]
-    bDY = m[3]
-    prizeX = m[4]
-    prizeY = m[5]
+for (aDX, aDY, bDX, bDY, prizeX, prizeY) in machines:
     nA, nB = solve(prizeX, prizeY, aDX, aDY, bDX, bDY)
     # cross-check answer
     if ((nA * aDX) + (nB * bDX) == prizeX) and ((nA * aDY) + (nB * bDY) == prizeY):
@@ -56,13 +40,9 @@ for m in machines:
 print(f"PART1 (simultaneous) Least cost to win all prizes {totalCost}")
 
 totalCost = 0
-for m in machines:
-    aDX = m[0]
-    aDY = m[1]
-    bDX = m[2]
-    bDY = m[3]
-    prizeX = 10000000000000 + m[4]
-    prizeY = 10000000000000 + m[5]
+for (aDX, aDY, bDX, bDY, prizeX, prizeY) in machines:
+    prizeX += 10000000000000
+    prizeY += 10000000000000
     nA, nB = solve(prizeX, prizeY, aDX, aDY, bDX, bDY)
     # cross-check answer
     if ((nA * aDX) + (nB * bDX) == prizeX) and ((nA * aDY) + (nB * bDY) == prizeY):
