@@ -11,7 +11,7 @@ areaMap = []
 map_height = 0
 trailheads = set()
 tops = set()
-with open("sampleinput", "r", encoding="utf-8") as f:
+with open("input", "r", encoding="utf-8") as f:
     line = f.readline().replace('\n', '')
     while line:
         for x, n in enumerate(list(map(int, line))):
@@ -23,10 +23,9 @@ with open("sampleinput", "r", encoding="utf-8") as f:
         line = f.readline().replace('\n', '')
         map_height += 1
 
-for x, y, node in G.nodes:
-    for dx, dy in directions:
-        if (x + dx, y + dy, node + 1) in G:
-            G.add_edge( (x, y, node), (x+dx, y+dy, node + 1) )
+[G.add_edge( (x,y,node), (x+dx, y+dy, node+1) ) \
+        for (x, y, node) in G.nodes \
+        for dx,dy in directions if (x+dx, y+dy, node+1) in G]
 
 # Part 1 answer is the total number of tops reachable from all trailheads
 totalScore = sum(t in nx.dfs_preorder_nodes(G, tr, depth_limit=9) \
