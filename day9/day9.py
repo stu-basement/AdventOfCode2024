@@ -1,60 +1,67 @@
-
-def swapBlocks(b, x, x1):
-    if b[x] == '.':
-        t = b[x]
-        b[x] = b[x1]
-        b[x1] = t
-    return b
-
-def swapRange(b, x, x1, n):
-    for i in range(0, n):
-        b = swapBlocks(b, x+i, x1+i)
-    return b
-
+""" AdventOfCode Day 9 """
 # PART 1
-with open("input", "r") as f:
-     diskMap = list(f.read())
+with open("input", "r", encoding="utf8") as f:
+    disk_map = list(map(int, f.read().strip()))
 
-print(f"Start with {diskMap}")
-mapIndex = 0
-blocks = []
-fileID = 0
-while mapIndex < len(diskMap) - 1:
-    fileLen = diskMap[mapIndex]
-    mapIndex += 1
-    for i in range(0, int(fileLen)):
-        blocks.append(str(fileID))
+# slice the disk map into blocks and spaces
+blocks = disk_map[slice(0, len(disk_map), 2)]
+spaces = disk_map[slice(1, len(disk_map), 2)]
 
-    if diskMap[mapIndex] != '\n':
-        freeSpaceLen = diskMap[mapIndex]
-        mapIndex += 1
+expanded = []
+i=0
+for j, block in enumerate(blocks):
+    for _ in range(block):
+        expanded.append(i)
+    i+=1
+    if j<len(spaces):
+        for _ in range(spaces[j]):
+            expanded.append(-1)
 
-        for i in range(0, int(freeSpaceLen)):
-            blocks.append('.')
+block_index = len(expanded) - 1
+space_index = 0
+while space_index < block_index:
+    while expanded[space_index] != -1 and space_index < block_index:
+        space_index += 1
 
-    fileID += 1
+    expanded[space_index], expanded[block_index] = expanded[block_index], expanded[space_index]
+    block_index -= 1
 
-print(f"Blocks: {blocks}")
-
-print(f"{len(blocks)} in blocks")
-for x in range(0, len(blocks)):
-    print(f"Block {x} of {len(blocks)}")
-    if blocks[x] == '.':
-        for lastBlock in range(len(blocks) - 1, x+1, -1):
-            if blocks[lastBlock] != '.' and lastBlock > x: 
-                blocks = swapBlocks(blocks, x, lastBlock)
-
-print(f"Packed {blocks}")
-
-mapIndex = 0
 checksum = 0
-while mapIndex < len(blocks):
-    if blocks[mapIndex] != '.':
-        fileID = blocks[mapIndex]
+for n, file_id in enumerate(expanded):
+    if file_id != -1:
+        checksum += (n * file_id)
+print(f"PART1 Checksum: {checksum}")
 
-        if blocks[mapIndex] != '0' and blocks[mapIndex] == fileID:
-            checksum += (mapIndex * int(fileID))
-               
-    mapIndex += 1
+files = []
+spaces = []
+position = 0
+for block, block_len in enumerate(disk_map):
+    if block % 2 == 0:
+        # this is a file of length block_len
+        files.append( (position, block_len) )
+    elif block_len:
+        # this is a space of length block_len
+        spaces.append( (position, block_len) )
+    position += block_len
 
-print(f"Checksum {checksum}")
+file_id = len(files) - 1
+while file_id >= 0:
+    file_position, file_len = files[file_id]
+    for space_index, (space_position, space_len) in enumerate(spaces):
+        if space_position >= file_position:
+            break
+
+        if space_len >= file_len:
+            # move the file into the space, shorten the space as necessary
+            files[file_id] = (space_position, file_len)
+            spaces[space_index] = (space_position + file_len, space_len - file_len)
+            break
+
+    file_id -= 1
+
+checksum = 0
+for file_id, (file_position, file_len) in enumerate(files):
+    for p in range(file_len):
+        checksum += file_id * (file_position + p)
+
+print(f"PART2 Checksum: {checksum}")
