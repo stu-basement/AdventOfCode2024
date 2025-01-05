@@ -18,7 +18,7 @@ cliques_of_interest = [clique for clique in nx.enumerate_all_cliques(G) \
 print(f"PART1: Total cliques of interest: {len(cliques_of_interest)}")
 
 # find the largest clique in the graph
-lanPartyCliques = list(nx.find_cliques(G))
-largest_clique = max(lanPartyCliques, key=len)
+lan_party_cliques = list(nx.find_cliques(G))
+largest_clique = max(lan_party_cliques, key=len)
 largest_clique.sort()
 print("PART2:", largest_clique)
