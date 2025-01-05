@@ -34,14 +34,10 @@ for b in buyerSeeds:
     total_secrets += ns
 
     buyerSequences = {}
-
-    # calculate the price changes
-    deltas = [str(p[1] - p[0]) for p in pairwise(prices) ]
-
     # use a sliding window to find the pattern
-    for sn, sequence in enumerate(windowed(deltas, n=4, step=1)):
-        # dictionary should contain the total bananas for this buyer
-        # for this sequence
+    for sn, sequence in \
+            enumerate(windowed((str(p[1] - p[0]) for p in pairwise(prices) ), n=4, step=1)):
+        # add to dictionary the total bananas for this buyer for this sequence
         if sequence not in buyerSequences:
             buyerSequences[ sequence ] = prices[sn+4]
 
