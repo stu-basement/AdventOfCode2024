@@ -1,4 +1,5 @@
 """ AdventOfCode Day 22 """
+from itertools import pairwise
 from more_itertools import windowed
 
 buyerSeeds = []
@@ -10,7 +11,7 @@ def nextSecret(s):
     next_s = ((next_s // 32) ^ next_s) % 16777216
     next_s = ((next_s * 2048) ^ next_s) % 16777216
 
-    return ns
+    return next_s
 
 with open("input", "r", encoding="utf-8") as f:
     line = f.readline().replace('\n', '')
@@ -18,34 +19,24 @@ with open("input", "r", encoding="utf-8") as f:
         buyerSeeds.append(int(line))
         line = f.readline().replace('\n','')
 
-# Simply generate 2000 secret numbers and take the total
+# Part 1 - Simply generate 2000 secret numbers and take the total
+# Part 2 - For each buyer, get all the sequences # and the total bananas they would yield
+# dictionary of key: sequence, value: total bananas
+bananas = {}
 total_secrets = 0
 for b in buyerSeeds:
     ns = b
+    prices = [ ns % 10 ]
     for n in range(2000):
         ns = nextSecret(ns)
+        # generate the first digits of prices
+        prices.append( ns % 10 )
     total_secrets += ns
-print(f"PART1: Total of 2000th secrets: {total_secrets}")
 
-# PART 2
-
-# For each buyer, get all the sequences
-# and the total bananas they would yield
-# dictionary of key: sequence, value: total bananas
-bananas = {}
-
-for b in buyerSeeds:
     buyerSequences = {}
 
-    # generate the first digits of prices
-    ns = b
-    prices = [ ns % 10 ]
-    for i in range(2000):
-        ns = nextSecret(ns)
-        prices.append( ns % 10 )
-
     # calculate the price changes
-    deltas = [str(prices[i+1] - prices[i]) for i in range(len(prices) - 1)]
+    deltas = [str(p[1] - p[0]) for p in pairwise(prices) ]
 
     # use a sliding window to find the pattern
     for sn, sequence in enumerate(windowed(deltas, n=4, step=1)):
@@ -61,4 +52,5 @@ for b in buyerSeeds:
         else:
             bananas[k] += v
 
+print(f"PART1: Total of 2000th secrets: {total_secrets}")
 print(f"PART2: Max bananas: {max(bananas.values())}")
