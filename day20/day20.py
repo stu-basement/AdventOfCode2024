@@ -1,82 +1,53 @@
+""" AdventOfCode Day 20 """
 from queue import PriorityQueue
-from collections import defaultdict
 from typing import TypeVar
 
 Node = TypeVar("Node")
 
-def withinTwo(m, p, tp):
-    dx = tp[0] - p[0]
-    dy = tp[1] - p[1]
-
-    x = p[0]
-    y = p[1]
-    if (abs(dx) == 2 and abs(dy) == 0) or (abs(dy) == 2 and abs(dx) == 0):
-        if (dx == 0):
-            wallY = y + (dy // 2)
-#            print(f"Points {p},{tp} within two {dx},{dy}, check for wall at {x},{wallY}")
-            wallBetween = m[wallY][x] in '#'
-        else:
-            wallX = x + (dx // 2)
-#            print(f"Points {p},{tp} within two {dx},{dy}, check for wall at {wallX},{y}")
-            wallBetween = m[y][wallX] in '#'
-
-        return wallBetween        
-
-    return False
+walls = set()
 
 def heuristic(a, b):
+    """ USe ManhattanDistance as heuristic for A* search """
     distance = abs(a[0] - b[0]) + abs(a[1] - b[1])
     return distance
-    return 0
 
-def neighbours(m, x, y, dx, dy):
-    # Neighbour is a tuple of (x, y, dx, dy, cost)
-    n = []
+def neighbours(w, x, y, dx, dy):
+    """ Return neighbours of a location in up/down/left/right directions that are not in walls """
+    directions = [ [0, -1], [1, 0], [0, 1], [-1, 0] ]
+    return [ (x+dx, y+dy, dx, dy, 1) for dx, dy in directions if (x+dx, y+dy) not in w ]
 
-    if m[y][x+1] not in '#':
-        n.append( (x+1, y, 1, 0, 1) )
-    if m[y][x-1] not in "#":
-        n.append( (x-1, y, -1, 0, 1) )
-
-    if m[y-1][x] not in '#':
-        n.append( (x, y-1, 0, -1, 1) )
-
-    if m[y+1][x] not in '#':
-        n.append( (x, y+1, 0, 1, 1) )
-
-    return n
-
-def reconstructPath(came_from, startNode, endNode):
+def reconstructPath(came_from, sp, ep):
+    """ Reconstruct the path through individual squares from start to end """
     path = []
-    current: Node = endNode
-    if (endNode) not in came_from:
+    current: Node = ep
+    if ep not in came_from:
         print("ERROR: No path found")
         return []
 
-    while current != startNode and current != None:
+    while current != sp and current is not None:
         path.append(current)
-        if (current != None):
+        if current is not None:
             current = came_from[current]
 
     path.reverse()
 
     return path
 
-def constructPathSet(came_from, startNode, endNode):
+def constructPathSet(came_from, s, e):
+    """ Construct the path as a set (x, y), step) """
     pathPoints = set()
 
-    path = reconstructPath(came_from, startNode, endNode)
+    path = reconstructPath(came_from, s, e)
 
-    for p in range(0, len(path)):
-        pathPoints.add( ( (path[p][0], path[p][1] ), p) )
+    for n, p in enumerate(path):
+        pathPoints.add( ( (p[0], p[1] ), n) )
 
-    print(f"Path points as a set")
     return pathPoints
-    
 
-def astarSearch(m, startNode, endNode):
+def astarSearch(w, sn, en):
+    """ A* search from start to end given walls """
     frontier = PriorityQueue()
-    n = (startNode[0], startNode[1], 1, 0, 0)
+    n = (sn[0], sn[1], 1, 0, 0)
 
     came_from: dict[Node] = {}
     cost_so_far: dict[Node, int] = {}
@@ -89,121 +60,75 @@ def astarSearch(m, startNode, endNode):
     while not frontier.empty():
         current: Node = frontier.get()
 
-        if (current[0] == endNode[0] and current[1] == endNode[1]):
-            print(f"Goal found with {current}")
-            if bestCost == None:
-                bestCost = cost_so_far[current]
-                goalNode = current
-            if cost_so_far[current] < bestCost:
+        if (current[0] == en[0] and current[1] == en[1]):
+            if bestCost is None or cost_so_far[current] < bestCost:
                 bestCost = cost_so_far[current]
                 goalNode = current
             continue
 
-        if bestCost != None and cost_so_far[current] >= bestCost:
+        if bestCost is not None and cost_so_far[current] >= bestCost:
             continue
 
-        for next in neighbours(m, current[0], current[1], current[2], current[3]):
-            new_cost = cost_so_far[current] + next[4]
+        for next_node in neighbours(w, current[0], current[1], current[2], current[3]):
+            new_cost = cost_so_far[current] + next_node[4]
 
-            if next not in cost_so_far:
-                cost_so_far[next] = new_cost
-                priority = new_cost + heuristic(next, endNode)
-                frontier.put(next, priority)
-                came_from[next] = current
-            else:
-                if new_cost < cost_so_far[next]:
-                    cost_so_far[next] = new_cost
-                    priority = new_cost + heuristic(next, endNode)
-                    frontier.put(next, priority)
-                    came_from[next] = current
-                elif new_cost == cost_so_far[next]:
-                    came_from[next] = current
-                
-    return came_from, cost_so_far, goalNode
+            if next_node not in cost_so_far or new_cost < cost_so_far[next_node]:
+                cost_so_far[next_node] = new_cost
+                priority = new_cost + heuristic(next_node, endNode)
+                frontier.put(next_node, priority)
+                came_from[next_node] = current
+            elif new_cost == cost_so_far[next_node]:
+                came_from[next_node] = current
 
-mazeMap = []
+    return came_from, goalNode
 
-with open("input", "r") as f:
-    line = f.readline()
-    while (len(line) > 1):
-        mazeMap.append(list(line.replace('\n', '')))
+map_height = 0
+startNode = endNode = None
+with open("input", "r", encoding="utf-8") as f:
+    line = f.readline().replace('\n', '')
+    while len(line) > 1:
+        for x, square in enumerate(list(line)):
+            if square == '#':
+                walls.add( (x, map_height) )
+            elif square == 'E':
+                endNode = (x, map_height, None, None, None)
+            elif square == 'S':
+                startNode = (x, map_height, None, None, None)
         line = f.readline()
+        map_height += 1
 
-for m in range(0, len(mazeMap)):
-    for n in range(0, len(mazeMap[0])):
-        if mazeMap[m][n] == 'E':
-            endNode = (n, m, None, None, None)
-        if mazeMap[m][n] == 'S':
-            startNode = (n, m, None, None, None)
+path_nodes, goal_state = astarSearch(walls, startNode, endNode)
+points = constructPathSet(path_nodes, startNode, goal_state)
 
-for r in mazeMap:
-    print(''.join(r))
-print(f"Start: {startNode}")
-print(f"End: {endNode}")
-
-came_from, cost_so_far, goal_state = astarSearch(mazeMap, startNode, endNode)
-if goal_state != None:
-    print(goal_state)
-    path = reconstructPath(came_from, startNode, goal_state)
-else:
-    print("No goal found")
-    exit()
-
-steps = 0
-turns = 0
-if len(path) > 0:
-    dx = 1
-    dy = 0
-    s = path[0]
-    for n in range(1, len(path)):
-        if (s[0]+dx == path[n][0] and s[1]+dy == path[n][1]):
-            steps += 1
-        else:
-            dx = path[n][0] - s[0]
-            dy = path[n][1] - s[1]
-            turns += 1
-
-        if (dx == 1):
-            stepChar=">"
-        elif (dx == -1):
-            stepChar="<"
-        elif (dy == 1):
-            stepChar="v"
-        elif (dy == -1):
-            stepChar="^"
-        else:
-            stepChar='X'
-
-        mazeMap[s[1]][s[0]] = stepChar
-        s = path[n]
-
-for r in mazeMap:
-    print(''.join(r))
-
-points = constructPathSet(came_from, startNode, goal_state)
-print(f"Number of points: {len(points)}")
-print(points)
-
-savings = []
-for p in points:
-    for q in points:
-        if p[0] != q[0]:
-            if withinTwo(mazeMap, p[0], q[0]):
-                savings.append( (p, q, abs(q[1] - p[1]) - 2) )
+# construct a list of savings between two points on the path that are 2 squares apart
+savings = [ (p, q, abs(q[1] - p[1]) - 2) for p in points for q in points \
+        if (p != q) and (abs(q[0][0] - p[0][0])+abs(q[0][1] - p[0][1])) == 2 and \
+           ( (p[0][0] + q[0][0]) // 2, (p[0][1] + q[0][1]) // 2) in walls ]
 
 savings.sort(reverse=True, key=lambda x: x[2])
-groupSavings = dict()
+groupSavings = {}
 savingsOver100 = 0
-for s in savings:
-    print(f"Saving of {s[2]} between {s[0]} and {s[1]}")
-    if ( s[2] ) not in groupSavings:
-        groupSavings[s[2]] = 1
+for saving in savings:
+    if ( saving[2] ) not in groupSavings:
+        groupSavings[saving[2]] = 1
     else:
-        count = groupSavings[s[2]]
-        groupSavings[s[2]] = count+1
+        groupSavings[saving[2]] = groupSavings[saving[2]]+1
 
-for k, v in groupSavings.items():
-    print(f"{v // 2} cheats save {k} picoseconds")
-    if (k >= 100):
-        savingsOver100 += (v//2)
-print(f"{savingsOver100} cheats save at least 100 picoseconds")
+savingsOver100 = sum( (v // 2) for k, v in groupSavings.items() if k >= 100)
+print(f"PART1: {savingsOver100} cheats save at least 100 picoseconds")
+
+savings = [ (p, q, abs(q[1] - p[1]) - abs(q[0][0] -p[0][0]) - abs(q[0][1] - p[0][1]) ) \
+        for p in points for q in points \
+        if p != q and abs(q[1] - p[1]) >= 100 and \
+        abs(q[0][0] - p[0][0]) + abs(q[0][1] - p[0][1]) <= 20 ]
+savings.sort(reverse=True, key=lambda x: x[2])
+groupSavings = {}
+savingsOver100 = 0
+for saving in savings:
+    if ( saving[2] ) not in groupSavings:
+        groupSavings[saving[2]] = 1
+    else:
+        groupSavings[saving[2]] = groupSavings[saving[2]]+1
+
+savingsOver100 = sum( (v // 2) for k, v in groupSavings.items() if k >= 100)
+print(f"PART2: {savingsOver100} cheats save at least 100 picoseconds")
