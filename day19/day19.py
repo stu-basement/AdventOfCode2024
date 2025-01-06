@@ -48,10 +48,8 @@ def countTowels(design, towel_patterns):
 
         fragment = [ towel + t for t in towel_patterns if design[len(towel):].startswith(t) ]
         for fr in fragment:
-            if fr in designTowels:
-                designTowels[fr] += count
-            else:
-                designTowels[fr] = count
+            designTowels[fr] = designTowels[fr] + count if fr in designTowels else count
+
         del designTowels[towel]
 
     return 0
