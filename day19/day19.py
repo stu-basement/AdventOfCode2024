@@ -3,18 +3,6 @@
 towels = set()
 designs = []
 
-def neighbours(current, towel_patterns):
-    """ Neighbours of the current towel are the patterns that it starts with """
-    n = []
-
-    if current not in towel_patterns:
-        for p in towel_patterns:
-            splits = current.partition(p)
-            if splits[0] == '' and splits[2]:
-                n.append( splits[2] )
-
-    return n
-
 def searchTowels(design, towel_patterns):
     """ Search the design for possible towel compostions """
     visited = []
@@ -31,9 +19,11 @@ def searchTowels(design, towel_patterns):
 
         if current not in visited:
             visited.append( current )
-            next_towels = neighbours(current, towel_patterns)
-            for n in next_towels:
-                s.append(n)
+            if current not in towel_patterns:
+                next_towels = [ current.removeprefix(p) for p in towel_patterns \
+                        if current.startswith(p) ]
+                for n in next_towels:
+                    s.append(n)
 
     return False
 
