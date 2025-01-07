@@ -13,8 +13,8 @@ def heuristic(a, b):
 
 def neighbours(w, x, y, dx, dy):
     """ Return neighbours of a location in up/down/left/right directions that are not in walls """
-    directions = [ [0, -1], [1, 0], [0, 1], [-1, 0] ]
-    return [ (x+dx, y+dy, dx, dy, 1) for dx, dy in directions if (x+dx, y+dy) not in w ]
+    dirs = [ [0, -1], [1, 0], [0, 1], [-1, 0] ]
+    return [ (x+dx, y+dy, dx, dy, 1) for dx, dy in dirs if (x+dx, y+dy) not in w ]
 
 def reconstructPath(came_from, sp, ep):
     """ Reconstruct the path through individual squares from start to end """
@@ -34,13 +34,13 @@ def reconstructPath(came_from, sp, ep):
     return path
 
 def constructPathSet(came_from, s, e):
-    """ Construct the path as a set (x, y), step) """
-    pathPoints = set()
+    """ Construct the path as a dictionary (x, y): step) """
+    pathPoints = {}
 
     path = reconstructPath(came_from, s, e)
 
     for n, p in enumerate(path):
-        pathPoints.add( ( (p[0], p[1] ), n) )
+        pathPoints[(p[0], p[1])] =  n
 
     return pathPoints
 
@@ -100,35 +100,41 @@ with open("input", "r", encoding="utf-8") as f:
 path_nodes, goal_state = astarSearch(walls, startNode, endNode)
 points = constructPathSet(path_nodes, startNode, goal_state)
 
-# construct a list of savings between two points on the path that are 2 squares apart
-savings = [ (p, q, abs(q[1] - p[1]) - 2) for p in points for q in points \
-        if (p != q) and (abs(q[0][0] - p[0][0])+abs(q[0][1] - p[0][1])) == 2 and \
-           ( (p[0][0] + q[0][0]) // 2, (p[0][1] + q[0][1]) // 2) in walls ]
+directions = [ [0, -2], [2, 0], [0, 2], [-2, 0], \
+        [1, -1], [1, 1], [-1, 1], [-1, -1], \
+        [0, -1], [1, 0], [0, 1], [-1, 0] ]
 
-savings.sort(reverse=True, key=lambda x: x[2])
+savings = [ v - points[(k[0]+dx, k[1]+dy)] - 2 for k, v in points.items() \
+        for dx, dy in directions \
+        if ( k[0] + dx, k[1] + dy ) in points ]
+
+savings.sort(reverse=True)
 groupSavings = {}
 savingsOver100 = 0
 for saving in savings:
-    if ( saving[2] ) not in groupSavings:
-        groupSavings[saving[2]] = 1
+    if ( saving ) not in groupSavings:
+        groupSavings[saving] = 1
     else:
-        groupSavings[saving[2]] = groupSavings[saving[2]]+1
+        groupSavings[saving] = groupSavings[saving]+1
 
-savingsOver100 = sum( (v // 2) for k, v in groupSavings.items() if k >= 100)
+savingsOver100 = sum( v for k, v in groupSavings.items() if k >= 100)
 print(f"PART1: {savingsOver100} cheats save at least 100 picoseconds")
 
-savings = [ (p, q, abs(q[1] - p[1]) - abs(q[0][0] -p[0][0]) - abs(q[0][1] - p[0][1]) ) \
-        for p in points for q in points \
-        if p != q and abs(q[1] - p[1]) >= 100 and \
-        abs(q[0][0] - p[0][0]) + abs(q[0][1] - p[0][1]) <= 20 ]
-savings.sort(reverse=True, key=lambda x: x[2])
+# look for points within the Manhattan distance of 20 that would save more than 100
+directions = [ (x, y) for x in range(-20, 21) for y in range(-20, 21) if abs(x) + abs(y) <= 20 ]
+savings = [ v - points[ (k[0]+dx, k[1]+dy) ]  - abs(dx) - abs(dy) \
+        for k, v in points.items() for dx, dy in directions \
+        if (k[0] + dx, k[1] + dy) in points and \
+        abs(dx) + abs(dy) <= 20 and k != (k[0]+dx,k[1]+dy) and \
+        abs(v - points[ (k[0]+dx, k[1]+dy )]) >= 100 ]
+savings.sort(reverse=True)
 groupSavings = {}
 savingsOver100 = 0
 for saving in savings:
-    if ( saving[2] ) not in groupSavings:
-        groupSavings[saving[2]] = 1
+    if ( saving ) not in groupSavings:
+        groupSavings[saving] = 1
     else:
-        groupSavings[saving[2]] = groupSavings[saving[2]]+1
+        groupSavings[saving] = groupSavings[saving]+1
 
-savingsOver100 = sum( (v // 2) for k, v in groupSavings.items() if k >= 100)
+savingsOver100 = sum( v for k, v in groupSavings.items() if k >= 100)
 print(f"PART2: {savingsOver100} cheats save at least 100 picoseconds")
