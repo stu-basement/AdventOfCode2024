@@ -124,9 +124,7 @@ print(f"PART1: {savingsOver100} cheats save at least 100 picoseconds")
 directions = [ (x, y) for x in range(-20, 21) for y in range(-20, 21) if abs(x) + abs(y) <= 20 ]
 savings = [ v - points[ (k[0]+dx, k[1]+dy) ]  - abs(dx) - abs(dy) \
         for k, v in points.items() for dx, dy in directions \
-        if (k[0] + dx, k[1] + dy) in points and \
-        abs(dx) + abs(dy) <= 20 and k != (k[0]+dx,k[1]+dy) and \
-        abs(v - points[ (k[0]+dx, k[1]+dy )]) >= 100 ]
+        if (k[0] + dx, k[1] + dy) in points and abs(v - points[ (k[0]+dx, k[1]+dy )]) >= 100 ]
 savings.sort(reverse=True)
 groupSavings = {}
 savingsOver100 = 0
