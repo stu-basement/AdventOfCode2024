@@ -46,32 +46,30 @@ def astarSearch(w, sn, en):
     came_from[n] = None
     cost_so_far[n] = 0
     bestCost = None
-    goalNode = None
+    goalNodes = []
 
     frontier.put( n, 0)
     while not frontier.empty():
         current: Node = frontier.get()
 
         if (current[0] == en[0] and current[1] == en[1]):
-            if bestCost is None or cost_so_far[current] < bestCost:
+            if bestCost is None or cost_so_far[current] <= bestCost:
                 bestCost = cost_so_far[current]
-                goalNode = current
-            continue
-
-        if bestCost is not None and cost_so_far[current] >= bestCost:
+                goalNodes.append( current )
             continue
 
         for next_node in neighbours(w, current[0], current[1], current[2], current[3]):
             new_cost = cost_so_far[current] + next_node[4]
             if next_node not in cost_so_far or new_cost < cost_so_far[next_node]:
                 cost_so_far[next_node] = new_cost
-                priority = new_cost + heuristic(next_node, endNode)
+                priority = new_cost
                 frontier.put(next_node, priority)
-                came_from[next_node] = current
+                came_from[next_node] = [current]
             elif new_cost == cost_so_far[next_node]:
-                came_from[next_node] = current
+                if current not in came_from[next_node]:
+                    came_from[next_node].append( current )
 
-    return came_from, bestCost, goalNode
+    return came_from, bestCost, goalNodes
 
 map_height = 0
 startNode = endNode = None
@@ -90,6 +88,28 @@ with open("input", "r", encoding="utf-8") as f:
         line = f.readline()
         map_height += 1
 
-came_from, best_cost, goal_state = astarSearch(walls, startNode, endNode)
+came_from, best_cost, goal_states = astarSearch(walls, startNode, endNode)
 
 print(f"PART1: {best_cost}")
+
+allPaths = set()
+tiles = set()
+for goal in goal_states:
+    stack = [([goal], goal)]
+
+    while stack:
+        path, current = stack.pop()
+
+        # Add all the tiles on this path as visited
+        if path is not None:
+            for p in path[::-1]:
+                tiles.add( (p[0], p[1]) )
+
+        # stop when we get back to the start node
+        if current[0] == startNode[0] and current[1] == startNode[1]:
+            continue
+
+        for parent in came_from.get(current, []):
+            stack.append((path + [parent], parent))
+
+print(f"PART2: Total squares visited: {len(tiles)}")
