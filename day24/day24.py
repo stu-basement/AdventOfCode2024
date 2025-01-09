@@ -164,7 +164,6 @@ for k, v in gates.items():
             if gates[gate_input1][0] == "AND" \
                     and gates[gate_input1][1] != 'x00'\
                     and gates[gate_input1][2] != 'y00':
-                print(f"Anomaly at gate {k} - input1 {gate_input1} comes from AND gate {gate_input1}")
                 anomalies.add( k )
 
         gate_input2 = v[2]
@@ -172,15 +171,13 @@ for k, v in gates.items():
             if gates[gate_input2][0] == "AND" \
                     and gates[gate_input2][1] != 'x00'\
                     and gates[gate_input2][2] != 'y00':
-                print(f"Anomaly at gate {k} - input2 {gate_input2} comes from AND gate {gate_input2}")
                 anomalies.add( k )
 
         # check for output anomalies
         for n in forwardG.neighbors(k):
+            gate_inputs = {gate_input1, gate_input2}
             if gates[n][0] != "OR" and not isOutputSignal(n) \
-                    and not (gate_input1 == "x00" or gate_input1 == "y00") \
-                    and not (gate_input2 == "x00" or gate_input2 == "y00"):
-                print(f"Anomaly - output of AND gate {k} is not another OR gate {n}")
+                    and not ("x00" in gate_inputs or "y00" in gate_inputs):
                 anomalies.add( k )
 
 # check XOR gates
@@ -193,7 +190,6 @@ for k, v in gates.items():
                 and gates[gate_input1][1] != 'x00'\
                 and gates[gate_input1][2] != 'y00':
             if gates[gate_input1][0] == "AND":
-                print(f"Anomaly at gate {k} - input1 {gate_input1} comes from AND gate {gate_input1}")
                 anomalies.add( k )
 
         gate_input2 = v[2]
@@ -201,14 +197,12 @@ for k, v in gates.items():
             if gates[gate_input2][0] == "AND" \
                 and gates[gate_input2][1] != 'x00'\
                 and gates[gate_input2][2] != 'y00':
-                print(f"Anomaly at gate {k} - input2 {gate_input2} comes from AND gate {gate_input2}")
                 anomalies.add( k )
 
         # check output anomalies
         for n in forwardG.neighbors(k):
             if not isOutputSignal(n):
                 if gates[n][0] != "AND" and gates[n][0] != "XOR":
-                    print(f"Anomaly at gate {k} - output does not go to AND/XOR/Z {n}")
                     anomalies.add( k )
 
 # Check OR gates
@@ -219,21 +213,18 @@ for k, v in gates.items():
         gate_input1 = v[1]
         gate_input2 = v[2]
         if gates[gate_input1][0] != "AND" and gates[gate_input2] != "AND":
-            print(f"Anomaly at gate {k} - inputs {gate_input1} and {gate_input2} do not come from AND gate")
             anomalies.add( k )
 
         # check output anomalies
         for n in forwardG.neighbors(k):
             if not isOutputSignal(n):
                 if gates[n][0] != "AND" and gates[n][0] != "XOR":
-                    print(f"Anomaly at gate {k} - output gate is not AND/OR {n}")
                     anomalies.add( k )
 
 # Check outputs
 for z in signalStates:
     if isOutputSignal(z) and z in gates:
         if gates[z][0] != "XOR" and z != 'z45':
-            print(f"Anomaly in output signal {z} does not come from XOR gate")
             anomalies.add( z )
 
 print(f"Anomalies: {anomalies}")
@@ -245,7 +236,6 @@ carryIn = None
 for g in forwardG.neighbors('x00'):
     if gates[g][0] == "AND":
         carryIn = g
-print(f"Carry In from half-adder: {carryIn}")
 
 # Check from inputs forward
 for a in range(1, 44):
@@ -258,7 +248,6 @@ for a in range(1, 44):
         if gates[gate][0] == "AND":
             xyAND = gate
             if isOutputSignal(xyAND):
-                print(f"{a} Anomaly {xyAND} - output signal found")
                 anomalies.add( (a, xyAND) )
             else:
                 second_gate = forwardG.neighbors(xyAND)
@@ -266,12 +255,10 @@ for a in range(1, 44):
                 if gates[carryOut][0] == "OR":
                     valid.add( (a, xyAND) )
                 else:
-                    print(f"{a} Anomaly - {xyAND} path to carry out is not valid")
                     anomalies.add( (a, xyAND) )
         else:
             xyXOR = gate
             if isOutputSignal(xyXOR):
-                print(f"{a} Anomaly {xyXOR} - output signal found")
                 anomalies.add( (a, xyXOR) )
             else:
                 second_gates = forwardG.neighbors(xyXOR)
@@ -285,7 +272,6 @@ for a in range(1, 44):
                 if validXOR and validAND:
                     valid.add( (a, xyXOR) )
                 else:
-                    print(f"{a} Anomaly - {xyXOR} path to z is not valid")
                     anomalies.add( (a, xyXOR) )
 
     if (a, xyXOR) in valid:
@@ -294,14 +280,12 @@ for a in range(1, 44):
             if gates[gate][0] == "XOR":
                 zSignal = gate
                 if not isOutputSignal(gate):
-                    print(f"{a} Anomaly - output of {xyXOR} XOR is not z")
                     anomalies.add( (a, zSignal) )
-                else: 
+                else:
                     gate_inputs = {gates[gate][1], gates[gate][2]}
-                    if carryIn in gate_inputs: 
+                    if carryIn in gate_inputs:
                         valid.add( (a, carryIn) )
                     else:
-                        print(f"{a} Anomaly - input of XOR is not {carryIn}")
                         anomalies.add( (a, carryIn) )
 
             if gates[gate][0] == "AND":
@@ -309,22 +293,17 @@ for a in range(1, 44):
                 gate_inputs = {gates[gate][1], gates[gate][2]}
                 if carryIn in gate_inputs:
                     valid.add( (a, carryIn) )
-                
+
                 third_gates = forwardG.neighbors(xyXORcarryInAND)
                 for gate in third_gates:
-                    if gates[gate][0] != "OR":
-                        print(f"{a} Anomaly - output of {xyXORcarryInAND} AND does not go to OR")
-                    else:
-                        if isOutputSignal(gate):
-                            print(f"{a} Anomaly - output of {xyXORcarryInAND} OR goes to z")
-                        else:
+                    if gates[gate][0] == "OR":
+                        if not isOutputSignal(gate):
                             gate_inputs = {gates[gate][1], gates[gate][2]}
                             if xyAND in gate_inputs:
                                 valid.add( (a, xyXORcarryInAND) )
                                 carryOut = gate
     zSignal = 'z' + str(a).zfill(2)
     if gates[zSignal][0] != "XOR":
-        print(f"{a} Anomaly in output signal {zSignal}")
         anomalies.add( (a, zSignal) )
     carryIn = carryOut
 
